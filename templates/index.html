@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e38">
+  <meta name="description" content="BUAInco: consultá tu cuenta, tarjetas y préstamos con Nova.">
+  <title>Nova | BUAInco</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23101e38'/%3E%3Cpath d='M18 15v34h19c15 0 15-17 2-17 11 0 10-17-2-17H18zm12 9h7c5 0 5 7 0 7h-7zm0 15h8c5 0 5 7 0 7h-8z' fill='%23dcf06a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-mode="{{ modo }}">
+  <div class="app">
+    <aside class="rail" aria-label="Panel de cuenta">
+      <div class="brand"><div class="mark">B</div><div><strong>B<span>UAI</span>nco</strong><small>Tu banco, a tu manera</small></div></div>
+      <div class="rail-body">
+        <div class="rail-kicker"><span class="rail-line"></span> TU ESPACIO</div>
+        <h1>Todo en<br><em>un mismo</em><br>lugar<span class="period">.</span></h1>
+        <div class="identity-card" id="identity-card">
+          <div class="identity-icon">01</div>
+          <div><strong>Explorá BUAInco</strong><p>Consultá sin cuenta. Para ver productos personales, elegí un cliente de prueba o creá tu perfil.</p></div>
+        </div>
+        <div id="profile" class="profile" hidden>
+          <div class="profile-overline">VISTA DE CUENTA <span class="profile-dot"></span></div>
+          <strong id="profile-name">—</strong>
+          <div class="profile-main"><span>Caja de ahorro</span><b id="profile-saldo">—</b></div>
+          <div class="profile-row"><span>Resumen TC</span><b id="profile-tc">—</b></div>
+        </div>
+      </div>
+      <div class="rail-foot"><span class="rail-foot-mark">✳</span> BUAInco <span>·</span> Atención digital</div>
+    </aside>
+    <main class="main">
+      <header class="top">
+        <div class="mobile-brand">B<span>UAI</span>nco</div>
+        <div class="top-label">CENTRO DE AYUDA <span>/</span> NOVA</div>
+        <div class="top-right"><button id="info" class="info-btn" aria-label="Cómo funciona" title="¿Cómo funciona?"><span>i</span> ¿Cómo funciona?</button></div>
+      </header>
+      <section class="chat" aria-label="Chat con Nova">
+        <div class="chat-head">
+          <div class="bot-avatar">✳</div>
+          <div class="chat-title"><h2>Nova <span class="online"><b></b> En línea</span></h2><p>Asistente de BUAInco</p><div id="client" class="client-status">Visitante · Consultas sin cuenta</div></div>
+          <button id="reset" title="Iniciar otra conversación" aria-label="Nueva conversación"><span>↺</span> <span class="reset-label">Nueva conversación</span></button>
+        </div>
+        <div id="messages" class="messages" aria-live="polite">
+          <div class="day"><span>HOY</span></div>
+          <div class="message bot"><div class="mini-avatar">✳</div><div class="bubble">¡Hola! Soy Nova. Puedo contarte sobre nuestras cuentas y tarjetas, cotizar un préstamo o ayudarte con tus productos. No necesitás ser cliente para consultar. ¿En qué te ayudo?</div></div>
+        </div>
+        <div class="chat-bottom">
+          <div class="quick-label">CONSULTAS RÁPIDAS</div>
+          <div id="quick" class="quick">
+            <button data-message="Consultar saldo">Caja de ahorro</button>
+            <button data-message="Consultar TC">Tarjeta de crédito</button>
+            <button data-message="Quiero pedir un préstamo">Préstamo personal</button>
+            <button data-message="Consultar transferencia">Transferencias</button>
+            <button data-message="Hablar con un asesor">Asesor</button>
+          </div>
+          <form id="form"><label class="sr" for="input">Escribí tu consulta</label><input id="input" autocomplete="off" maxlength="500" placeholder="Escribile a Nova..." required><button type="submit" aria-label="Enviar mensaje"><span>↑</span></button></form>
+          <p class="disclaimer">Proyecto académico · Usá datos de prueba. Sin operaciones ni consultas externas. Los datos de la sesión se borran al cerrarla.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <dialog id="about">
+    <button id="close" class="close" aria-label="Cerrar">×</button>
+    <span class="eyebrow">POR DENTRO</span><h2>Cómo decide Nova</h2>
+    <p>Nova funciona como un <strong>agente conversacional</strong>. A partir de lo que escribís, identifica la consulta y aplica reglas para responder o pedir el dato que falta.</p>
+    <div class="decision-steps" role="list">
+      <div role="listitem"><b>01</b><div><strong>Percibe</strong><span>Recibe tu mensaje como entrada.</span></div></div>
+      <div role="listitem"><b>02</b><div><strong>Interpreta</strong><span>Analiza el texto para reconocer la intención más probable. En la versión Python usa un clasificador entrenado con frases de ejemplo.</span></div></div>
+      <div role="listitem"><b>03</b><div><strong>Actúa</strong><span>Aplica una regla: responde la consulta o pide el dato que falta.</span></div></div>
+      <div role="listitem"><b>04</b><div><strong>Recuerda</strong><span>En diálogos de varios pasos conserva temporalmente el DNI, el monto y el paso que falta completar.</span></div></div>
+    </div>
+    <h3>Qué tipo de IA es</h3>
+    <p>Su diseño se relaciona con los <strong>agentes inteligentes</strong>: percibe información y selecciona una acción para avanzar hacia una respuesta útil. Al tomar decisiones mediante conocimiento y reglas explícitas, también tiene rasgos de un <strong>sistema experto sencillo</strong>. En una consulta directa reacciona al mensaje actual; en préstamos y tarjetas usa el estado de la conversación.</p>
+    <h3>Evaluación crediticia</h3>
+    <p>Al identificar un perfil, Nova calcula un score de 0 a 900 a partir de sus consumos ficticios de TC, su límite y una variación estable del DNI de prueba. Muestra un nivel de riesgo y el límite de préstamo asignado al perfil. Tras una cotización, “Evaluar mi préstamo” pide DNI e ingreso mensual de prueba: asigna una TNA por tramo de score y preaprueba solo si el score llega a 700, el monto no supera el límite y la cuota no excede el 30% del ingreso. La consulta a la Central de Deudores es una recreación local; no accede a información financiera real. Los datos se usan durante la sesión y se borran al cerrarla; no hay base de datos.</p>
+    <p class="note">Usá un DNI de prueba como 12345678 o 87654321. Los perfiles son ficticios. PP es préstamo personal, TC tarjeta de crédito y TD tarjeta de débito.</p>
+  </dialog>
+  <script src="/static/demo.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+</html>

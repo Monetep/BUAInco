@@ -1,0 +1,8 @@
+{
+  "12345678": {"nombre": "Camila", "saldo": 1044000, "tc": 327200, "limite": 2500000, "limite_tc": 1200000, "transferencia": 30600, "dia": 16},
+  "87654321": {"nombre": "Martín", "saldo": 612000, "tc": 198000, "limite": 1500000, "limite_tc": 900000, "transferencia": 45000, "dia": 18},
+  "23456789": {"nombre": "Lucía", "saldo": 386500, "tc": 84500, "limite": 1000000, "limite_tc": 650000, "transferencia": 22000, "dia": 20},
+  "34567890": {"nombre": "Tomás", "saldo": 1590000, "tc": 412000, "limite": 3000000, "limite_tc": 1800000, "transferencia": 68000, "dia": 22},
+  "45678901": {"nombre": "Sofía", "saldo": 725000, "tc": 156300, "limite": 2000000, "limite_tc": 1000000, "transferencia": 31500, "dia": 24},
+  "56789012": {"nombre": "Julián", "saldo": 215000, "tc": 68900, "limite": 1000000, "limite_tc": 500000, "transferencia": 18000, "dia": 25}
+}

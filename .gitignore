@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+
+# Editores y sistema
+.DS_Store
+.vscode/
+.idea/
+
+# Archivos web temporales
+node_modules/
+.cache/

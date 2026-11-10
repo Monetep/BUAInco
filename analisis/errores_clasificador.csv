@@ -1,0 +1,44 @@
+﻿frase,intencion_esperada,prediccion_modelo,regla,resultado_final,consecuencia
+necesito saber mi disponible,saldo,tc,—,tc,Sigue equivocado
+ver mis fondos,saldo,productos,—,Reformular,Reformular
+cuanto me queda,saldo,tc,—,tc,Sigue equivocado
+mi ca,saldo,alias,—,Reformular,Reformular
+quiero saber lo que debo en la tc,tc,td,tc,tc,Corregido
+deuda en tarjeta,tc,tarjeta_perdida,—,Reformular,Reformular
+mi cupo de tarjeta,tc,tarjeta_perdida,—,Reformular,Reformular
+saldo disponible en la tc,tc,saldo,tc,tc,Corregido
+tarjeta asociada a mi caja de ahorro,td,tarjeta_perdida,—,Reformular,Reformular
+informacion de mi debito,td,productos,—,Reformular,Reformular
+mi plastico de debito,td,tarjeta_perdida,—,tarjeta_perdida,Sigue equivocado
+datos de la td,td,alias,td,td,Corregido
+la tarjeta vinculada a mi cuenta,td,tarjeta_perdida,—,Reformular,Reformular
+tarjeta para extraer de cajero,td,tarjeta_perdida,—,tarjeta_perdida,Sigue equivocado
+tengo una td,td,saldo,td,td,Corregido
+necesito un credito personal,prestamo,asesor,—,asesor,Sigue equivocado
+monto disponible para pedir prestado,prestamo,tc,—,Reformular,Reformular
+cuanto pagaria por mes,prestamo,tc,—,Reformular,Reformular
+consultar mi pp,prestamo,tc,prestamo,prestamo,Corregido
+necesito financiar una compra,prestamo,transferencia,—,Reformular,Reformular
+necesito 500000 en 24 meses,prestamo,asesor,—,Reformular,Reformular
+puedo cotizar sin ser cliente,prestamo,asesor,—,Reformular,Reformular
+rastrear un giro bancario,transferencia,alias,—,Reformular,Reformular
+necesito un comprobante,transferencia,asesor,—,Reformular,Reformular
+quiero saber si llego el dinero,transferencia,saldo,—,saldo,Sigue equivocado
+envie plata a otra cuenta,transferencia,saldo,—,Reformular,Reformular
+pago por cbu,transferencia,alias,alias,alias,Sigue equivocado
+necesito una persona,asesor,prestamo,—,prestamo,Sigue equivocado
+quiero un representante,asesor,prestamo,—,Reformular,Reformular
+necesito ayuda de un empleado,asesor,prestamo,—,Reformular,Reformular
+comunicarme con el banco,asesor,saldo,—,Reformular,Reformular
+pedir asistencia personal,asesor,prestamo,—,prestamo,Sigue equivocado
+me desaparecio mi tc,tarjeta_perdida,tc,tc,tc,Sigue equivocado
+perdida de tarjeta de credito,tarjeta_perdida,tc,tarjeta_perdida,tarjeta_perdida,Corregido
+no tengo mi tarjeta de debito,tarjeta_perdida,td,—,td,Sigue equivocado
+no encuentro mi tc,tarjeta_perdida,tc,tarjeta_perdida,tarjeta_perdida,Corregido
+no se donde deje mi debito,tarjeta_perdida,td,—,td,Sigue equivocado
+informacion del banco,productos,td,—,Reformular,Reformular
+que puedo contratar,productos,tc,—,Reformular,Reformular
+cuentas tarjetas y prestamos,productos,prestamo,—,prestamo,Sigue equivocado
+mi clave bancaria uniforme,alias,productos,—,Reformular,Reformular
+dame mi numero de cuenta,alias,saldo,—,Reformular,Reformular
+datos para que me manden plata,alias,productos,—,Reformular,Reformular

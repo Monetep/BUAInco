@@ -3,7 +3,6 @@ import json
 import os
 import re
 import secrets
-import sys
 import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
@@ -11,7 +10,8 @@ from flask import Flask, jsonify, render_template, request, session
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-# Frases etiquetadas usadas para entrenar el clasificador.
+# 1. DATOS DE ENTRENAMIENTO
+# Cada frase tiene una intención conocida: con ellas se entrena el clasificador.
 EJEMPLOS = {'saldo': ['cuanto dinero tengo',
            'quiero ver mi saldo',
            'plata disponible en mi cuenta',
@@ -53,7 +53,25 @@ EJEMPLOS = {'saldo': ['cuanto dinero tengo',
         'mi tarjeta de credito',
         'deuda en tarjeta',
         'cuanto es el resumen de mi tarjeta',
-        'importe a pagar de la tc'],
+        'importe a pagar de la tc',
+        'cual es mi limite de tarjeta',
+        'disponible para comprar con tc',
+        'limite de mi tarjeta de credito',
+        'cuanto puedo gastar con la tc',
+        'ver limite disponible',
+        'cuanto credito me queda',
+        'limite de compras de mi tarjeta',
+        'consultar limite tc',
+        'disponible de mi tarjeta de credito',
+        'cuanto puedo comprar con credito',
+        'mi cupo de tarjeta',
+        'limite total de mi tc',
+        'cuanto disponible queda en la tarjeta',
+        'que limite tengo para compras',
+        'disponible de credito',
+        'saldo disponible en la tc',
+        'mi limite de credito',
+        'limite para consumos'],
  'td': ['mi tarjeta de debito',
         'quiero consultar mi td',
         'como esta la tarjeta de debito',
@@ -174,96 +192,6 @@ EJEMPLOS = {'saldo': ['cuanto dinero tengo',
                'que servicios tienen',
                'informacion de sus productos',
                'que opciones tienen para mi'],
- 'info_cuenta': ['que es una caja de ahorro',
-                 'como funciona una cuenta',
-                 'informacion de la caja de ahorro',
-                 'para que sirve una cuenta bancaria',
-                 'quiero saber sobre cuentas',
-                 'que permite la caja de ahorro',
-                 'informacion general de cuentas',
-                 'que cuenta puedo tener',
-                 'como funciona una caja de ahorro',
-                 'cuanto cuesta la cuenta',
-                 'que incluye una cuenta',
-                 'cuenta con tarjeta de debito',
-                 'se puede recibir dinero en la cuenta',
-                 'para que sirve el cbu',
-                 'como puedo recibir transferencias',
-                 'que es un alias bancario',
-                 'explicame la caja de ahorro',
-                 'beneficios de una caja de ahorro'],
- 'info_tarjetas': ['que tarjetas ofrecen',
-                   'quiero una tarjeta',
-                   'como funciona la tarjeta de credito',
-                   'que es una tarjeta de debito',
-                   'diferencia entre credito y debito',
-                   'quiero pedir una tarjeta de credito',
-                   'informacion de tarjetas',
-                   'que tipos de tarjetas hay',
-                   'que tarjeta me conviene conocer',
-                   'como se usa una tarjeta de debito',
-                   'tarjetas disponibles para nuevos clientes',
-                   'quiero sacar una tarjeta',
-                   'que incluye la tarjeta de credito',
-                   'que es el cierre de tarjeta',
-                   'que significa vencimiento de tarjeta',
-                   'como funciona el resumen',
-                   'puedo pedir tarjeta sin cuenta',
-                   'que tarjetas tienen'],
- 'apertura': ['quiero abrir una cuenta',
-              'quiero hacerme cliente',
-              'como me registro',
-              'apertura de caja de ahorro',
-              'quiero ser cliente del banco',
-              'darme de alta',
-              'registrarme como cliente',
-              'necesito una cuenta nueva',
-              'quiero abrir caja de ahorro',
-              'como abro mi cuenta',
-              'requisitos para abrir una cuenta',
-              'quiero crear una cuenta',
-              'me gustaria hacerme cliente',
-              'como puedo ser cliente',
-              'alta de cuenta bancaria',
-              'necesito registrarme',
-              'quiero tener una cuenta',
-              'empezar a ser cliente'],
- 'requisitos_pp': ['requisitos del prestamo',
-                   'que necesito para pedir un credito',
-                   'condiciones del prestamo personal',
-                   'que papeles piden para el pp',
-                   'documentacion para solicitar prestamo',
-                   'necesito recibo de sueldo para el credito',
-                   'informacion de requisitos del credito',
-                   'requisitos para no clientes',
-                   'puedo solicitar credito sin ser cliente',
-                   'que ingresos piden para un prestamo',
-                   'se evalua el prestamo',
-                   'condiciones para solicitar un pp',
-                   'que documentos necesito para un credito',
-                   'como aprueban un prestamo',
-                   'requisitos de financiacion personal',
-                   'quiero conocer condiciones para pedir prestado',
-                   'que necesito para obtener el pp',
-                   'documentacion de prestamo personal'],
- 'movimientos': ['mis ultimos movimientos',
-                 'mostrame mis gastos',
-                 'ver movimientos de cuenta',
-                 'ultimas compras',
-                 'que gaste ayer',
-                 'que movimientos tuve',
-                 'historial de caja de ahorro',
-                 'ver mis gastos recientes',
-                 'detalle de movimientos',
-                 'mis ultimas operaciones',
-                 'entradas y salidas de mi cuenta',
-                 'ver los movimientos bancarios',
-                 'listado de movimientos',
-                 'ultimos gastos de la cuenta',
-                 'que pagos hice',
-                 'mis gastos de ayer',
-                 'ver acreditaciones y debitos',
-                 'consultar movimientos recientes'],
  'alias': ['cual es mi alias',
            'pasame mi cbu',
            'datos para recibir transferencias',
@@ -281,26 +209,9 @@ EJEMPLOS = {'saldo': ['cuanto dinero tengo',
            'mi alias bancario',
            'mostrar mis datos para transferir',
            'dame mi numero de cuenta',
-           'datos para que me manden plata'],
- 'limite_tc': ['cual es mi limite de tarjeta',
-               'disponible para comprar con tc',
-               'limite de mi tarjeta de credito',
-               'cuanto puedo gastar con la tc',
-               'ver limite disponible',
-               'cuanto credito me queda',
-               'limite de compras de mi tarjeta',
-               'consultar limite tc',
-               'disponible de mi tarjeta de credito',
-               'cuanto puedo comprar con credito',
-               'mi cupo de tarjeta',
-               'limite total de mi tc',
-               'cuanto disponible queda en la tarjeta',
-               'que limite tengo para compras',
-               'disponible de credito',
-               'saldo disponible en la tc',
-               'mi limite de credito',
-               'limite para consumos']}
+           'datos para que me manden plata']}
 
+# 2. CONFIGURACIÓN Y DATOS DE PRUEBA
 app = Flask(__name__)
 app.secret_key = os.environ.get('BUAINCO_SECRET_KEY') or secrets.token_hex(32)
 CLIENTES = json.loads(Path(__file__).with_name('clientes.json').read_text(encoding='utf-8'))
@@ -308,10 +219,11 @@ TNA = 0.79  # Tasa ilustrativa; no es una oferta financiera.
 PLAZOS = (6, 12, 24)
 LIMITE_VISITANTE = 1000000
 INICIO = '¡Hola! Soy Nova. Puedo contarte sobre nuestras cuentas y tarjetas, cotizar un préstamo o ayudarte con tus productos. No necesitás ser cliente para consultar. ¿En qué te ayudo?'
-MENU = ['Ver productos', 'Cotizar un préstamo', 'Abrir una cuenta', 'Soy cliente', 'Hablar con un asesor']
-PERSONALES = {'saldo', 'tc', 'td', 'movimientos', 'alias', 'limite_tc', 'transferencia', 'tarjeta_perdida', 'score'}
+MENU = ['Ver productos', 'Cotizar un préstamo', 'Soy cliente', 'Hablar con un asesor']
+PERSONALES = {'saldo', 'tc', 'td', 'alias', 'transferencia', 'tarjeta_perdida', 'score'}
 
 
+# 3. INTELIGENCIA ARTIFICIAL: TEXTO, ENTRENAMIENTO Y CLASIFICACIÓN
 def normalizar(texto):
     texto = unicodedata.normalize('NFD', texto.lower())
     return ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
@@ -338,24 +250,14 @@ def detectar_intencion(mensaje):
     t = normalizar(mensaje)
     if any(contiene(t, x) for x in ['perdi', 'perdida', 'robaron', 'bloquear', 'extravie', 'no encuentro']):
         return 'tarjeta_perdida'
-    if re.search(r'abrir|apertura|hacerme cliente|ser cliente|registrarme', t):
-        return 'apertura'
-    if re.search(r'requisito|condiciones|que necesito|documentacion', t) and re.search(r'prestamo|credito|\bpp\b', t):
-        return 'requisitos_pp'
     if re.search(r'limite|disponible para comprar', t) and re.search(r'tarjeta|credito|\btc\b', t):
-        return 'limite_tc'
+        return 'tc'
     if re.search(r'alias|\bcbu\b|datos para (recibir|transferir)', t):
         return 'alias'
     if re.search(r'\bscore\b|scoring|calificacion crediticia|central de deudores|historial crediticio|mis deudas', t):
         return 'score'
-    if re.search(r'movimiento|ultimos gastos|mis gastos|ultimas compras', t):
-        return 'movimientos'
-    if re.search(r'productos|que (ofrecen|tienen)|conocer el banco', t):
+    if re.search(r'productos|que (ofrecen|tienen)|que tarjetas ofrecen|que cuentas ofrecen|conocer el banco|que es.*(cuenta|caja|tarjeta)|como funciona.*(cuenta|caja|tarjeta)', t):
         return 'productos'
-    if re.search(r'tarjetas? (ofrecen|tienen)|quiero (una |sacar una |pedir una )?tarjeta|como funciona.*tarjeta|diferencia.*(tc|tarjeta)', t):
-        return 'info_tarjetas'
-    if re.search(r'que es.*(cuenta|caja)|como funciona.*(cuenta|caja)|costo.*cuenta', t):
-        return 'info_cuenta'
     for sigla, intencion in [('pp', 'prestamo'), ('tc', 'tc'), ('td', 'td')]:
         if contiene(t, sigla):
             return intencion
@@ -364,13 +266,14 @@ def detectar_intencion(mensaje):
     return MODELO.classes_[mejor] if probabilidades[mejor] >= 0.45 else None
 
 
+# 4. UTILIDADES: ESTADO, PERFILES Y CÁLCULOS
 def base_estado(estado):
     """Conserva identidad y bloqueos; descarta el paso de la consulta."""
-    return {k: estado[k] for k in ('dni', 'perfil_nuevo', 'bloqueadas') if k in estado}
+    return {k: estado[k] for k in ('dni', 'bloqueadas') if k in estado}
 
 
-def crear_cliente(dni):
-    """Solo el alta explícita genera un perfil nuevo. No consulta un padrón."""
+def perfil_de_prueba(dni):
+    """Genera datos reproducibles para cualquier DNI de prueba de 8 dígitos."""
     n = int(dni)
     return {'nombre': 'Cliente', 'saldo': 180000 + n % 73 * 13500,
             'tc': 42000 + n % 59 * 6200, 'limite': 1000000 + n % 5 * 500000,
@@ -379,7 +282,8 @@ def crear_cliente(dni):
 
 
 def perfil(estado):
-    return estado.get('perfil_nuevo') or CLIENTES.get(estado.get('dni'))
+    dni = estado.get('dni')
+    return (CLIENTES.get(dni) or perfil_de_prueba(dni)) if dni else None
 
 
 def dinero(numero):
@@ -474,6 +378,7 @@ def extraer_prestamo(mensaje, paso=None):
     return monto, cuotas
 
 
+# 5. DIÁLOGO: PRÉSTAMOS Y RESPUESTAS SEGÚN EL ESTADO
 def avanzar_prestamo(mensaje, estado):
     monto, cuotas = extraer_prestamo(mensaje, estado.get('paso'))
     limite = perfil(estado)['limite'] if perfil(estado) else LIMITE_VISITANTE
@@ -492,7 +397,7 @@ def avanzar_prestamo(mensaje, estado):
         nuevo['cuotas'] = cuotas
     if not monto:
         return respuesta(f'Podés cotizar entre $100.000 y {dinero(limite)}, en 6, 12 o 24 cuotas. ¿Qué monto necesitás?',
-                         {**nuevo, 'paso': 'monto'}, ['300 mil en 12 cuotas', '500 mil en 24 cuotas', 'Requisitos del préstamo'])
+                         {**nuevo, 'paso': 'monto'}, ['300 mil en 12 cuotas', '500 mil en 24 cuotas'])
     if not cuotas:
         return respuesta(f'Para {dinero(monto)}, ¿preferís 6, 12 o 24 cuotas?',
                          {**nuevo, 'paso': 'cuotas'}, ['6 cuotas', '12 cuotas', '24 cuotas'])
@@ -523,61 +428,40 @@ def responder(mensaje, estado):
     if social in ('gracias', 'muchas gracias', 'genial', 'perfecto', 'joya', 'buenisimo'):
         return respuesta('¡De nada! Acá estoy si necesitás algo más.', estado)
     if social in ('ayuda', 'que podes hacer', 'como funciona', 'en que me ayudas'):
-        return respuesta('Puedo contarte sobre cuentas y tarjetas, cotizar un PP y ayudarte a abrir un perfil. Si ya tenés uno, consultamos saldo, movimientos, alias, TC, TD y transferencias. Escribí cancelar para dejar una consulta.', estado, MENU)
+        return respuesta('Puedo contarte sobre cuentas y tarjetas, cotizar un PP y consultar saldo, alias, TC, TD y transferencias con un DNI de prueba. Escribí cancelar para dejar una consulta.', estado, MENU)
     if social in ('no soy cliente', 'soy visitante', 'continuar como visitante', 'seguir como visitante', 'no tengo cuenta'):
         if paso in ('monto', 'cuotas'):
             visita = {k: estado[k] for k in ('paso', 'monto', 'cuotas') if k in estado}
             return avanzar_prestamo('', visita)
-        return respuesta('¡Podés consultar igual! Conocé nuestros productos, cotizá un préstamo o abrí un perfil de prueba.', {}, MENU[:3])
+        return respuesta('¡Podés consultar igual! Conocé nuestros productos o cotizá un préstamo sin ingresar un DNI.', {}, MENU[:3])
     if social in ('clientes de prueba', 'ver clientes de prueba', 'mostrar clientes de prueba'):
         listado = '\n'.join(f'{dni} · {CLIENTES[dni]["nombre"]}' for dni in sorted(CLIENTES))
         return respuesta('Elegí uno de estos perfiles ficticios:\n' + listado, estado, sorted(CLIENTES))
     if social in ('soy cliente', 'entrar a mi cuenta', 'iniciar sesion', 'cambiar cliente'):
         return respuesta('Ingresá un DNI de prueba de 8 dígitos. Voy a mostrarte la evaluación crediticia del perfil con datos ficticios. No se consulta ninguna central externa ni se guarda la información en una base de datos; se elimina al cerrar la sesión.', {'paso': 'identificar'}, ['Ver clientes de prueba', 'Continuar como visitante'])
 
-    # Identificación: un número desconocido nunca abre una cuenta automáticamente.
-    if re.fullmatch(r'\d{8}', mensaje.strip()) and paso not in ('monto', 'cuotas', 'alta_nombre', 'ingreso'):
+    # Cualquier DNI de prueba de 8 dígitos activa un perfil temporal, sin alta.
+    if re.fullmatch(r'\d{8}', mensaje.strip()) and paso not in ('monto', 'cuotas', 'ingreso'):
         dni = mensaje.strip()
-        if dni in CLIENTES:
-            nuevo = {'dni': dni}
-            informe = evaluacion(nuevo)
-            if paso == 'evaluacion_dni':
-                nuevo.update(paso='ingreso', ultimo_prestamo=estado['ultimo_prestamo'], ultimas_cuotas=estado['ultimas_cuotas'])
-                return respuesta(f'¡Hola, {CLIENTES[dni]["nombre"]}!\n{informe}\n\nPara evaluar el préstamo de {dinero(estado["ultimo_prestamo"])}, ¿cuál es tu ingreso mensual neto de prueba?', nuevo, ['Cancelar'])
-            if estado.get('pendiente'):
-                r = responder(estado['pendiente'], nuevo)
-                r['texto'] = f'¡Hola, {CLIENTES[dni]["nombre"]}!\n{informe}\n\n' + r['texto']
-                return r
-            return respuesta(f'¡Hola, {CLIENTES[dni]["nombre"]}!\n{informe}\n\n¿Qué querés consultar?', nuevo,
-                             ['Consultar saldo', 'Mi score', 'Mis movimientos', 'Mi TC', 'Cotizar un préstamo'])
-        if paso == 'alta_dni':
-            return respuesta('¿Qué nombre querés usar para tu perfil? Usá un nombre de prueba.', {**estado, 'paso': 'alta_nombre', 'dni_alta': dni})
-        return respuesta('No encontré ese DNI entre los clientes de prueba. Podés seguir sin cuenta o crear un perfil de demostración.',
-                         {**({k: estado[k] for k in ('ultimo_prestamo', 'ultimas_cuotas') if k in estado}), 'dni_alta': dni}, ['Continuar como visitante', 'Crear perfil de prueba', 'Ver clientes de prueba'])
-    if paso == 'alta_nombre':
-        nombre = mensaje.strip()
-        if not 2 <= len(nombre) <= 40 or not all(c.isalpha() or c in " '-" for c in nombre):
-            return respuesta('Escribí un nombre de prueba de 2 a 40 caracteres, usando letras.', estado)
-        nuevo = crear_cliente(estado['dni_alta'])
-        nuevo['nombre'] = nombre.title()
-        perfil_creado = {'dni': estado['dni_alta'], 'perfil_nuevo': nuevo}
-        if estado.get('ultimo_prestamo'):
-            perfil_creado.update(paso='ingreso', ultimo_prestamo=estado['ultimo_prestamo'], ultimas_cuotas=estado['ultimas_cuotas'])
-            return respuesta(f'¡Listo, {nuevo["nombre"]}!\n{evaluacion(perfil_creado)}\n\n¿Cuál es tu ingreso mensual neto de prueba para evaluar el préstamo?', perfil_creado, ['Cancelar'])
-        return respuesta(f'¡Listo, {nuevo["nombre"]}! Tu perfil está disponible durante esta sesión.\n{evaluacion(perfil_creado)}',
-                         perfil_creado, ['Consultar saldo', 'Mi score', 'Mis movimientos', 'Mi alias'])
-
-    if social == 'crear perfil de prueba':
-        if estado.get('dni_alta'):
-            return respuesta('¿Qué nombre querés usar para tu perfil? Usá un nombre de prueba.', {**estado, 'paso': 'alta_nombre'})
-        return respuesta('Ingresá un DNI de prueba de 8 dígitos para crear el perfil. No uses datos reales.', {**{k: estado[k] for k in ('ultimo_prestamo', 'ultimas_cuotas') if k in estado}, 'paso': 'alta_dni'})
+        nuevo = {'dni': dni}
+        nombre = perfil(nuevo)['nombre']
+        informe = evaluacion(nuevo)
+        if paso == 'evaluacion_dni':
+            nuevo.update(paso='ingreso', ultimo_prestamo=estado['ultimo_prestamo'], ultimas_cuotas=estado['ultimas_cuotas'])
+            return respuesta(f'¡Hola, {nombre}!\n{informe}\n\nPara evaluar el préstamo de {dinero(estado["ultimo_prestamo"])}, ¿cuál es tu ingreso mensual neto de prueba?', nuevo, ['Cancelar'])
+        if estado.get('pendiente'):
+            r = responder(estado['pendiente'], nuevo)
+            r['texto'] = f'¡Hola, {nombre}!\n{informe}\n\n' + r['texto']
+            return r
+        return respuesta(f'¡Hola, {nombre}!\n{informe}\n\n¿Qué querés consultar?', nuevo,
+                         ['Consultar saldo', 'Mi score', 'Mi TC', 'Cotizar un préstamo'])
 
     if social in ('evaluar mi prestamo', 'solicitar prestamo', 'pedir este prestamo') and estado.get('ultimo_prestamo'):
         solicitud = {**base, 'ultimo_prestamo': estado['ultimo_prestamo'], 'ultimas_cuotas': estado['ultimas_cuotas']}
         if p:
             return respuesta('Para calcular la tasa de tu perfil y evaluar la solicitud, ¿cuál es tu ingreso mensual neto de prueba?', {**solicitud, 'paso': 'ingreso'}, ['Cancelar'])
         return respuesta('Para calcular tu tasa y evaluar el préstamo, ingresá un DNI de prueba de 8 dígitos o elegí un perfil. No consultamos centrales externas ni guardamos el DNI en una base de datos.',
-                         {**solicitud, 'paso': 'evaluacion_dni'}, ['Ver clientes de prueba', 'Crear perfil de prueba', 'Cancelar'])
+                         {**solicitud, 'paso': 'evaluacion_dni'}, ['Ver clientes de prueba', 'Cancelar'])
 
     if paso == 'ingreso':
         ingreso, _ = extraer_prestamo(mensaje)
@@ -585,23 +469,17 @@ def responder(mensaje, estado):
             return respuesta('Ingresá un ingreso mensual neto de prueba entre $100.000 y $50.000.000. Por ejemplo, “800 mil”.', estado, ['Cancelar'])
         return evaluar_prestamo(estado, ingreso)
     if paso == 'evaluacion_dni':
-        return respuesta('Para evaluar el préstamo necesito un DNI de prueba de 8 dígitos. También podés elegir un perfil de la lista.', estado, ['Ver clientes de prueba', 'Crear perfil de prueba', 'Cancelar'])
+        return respuesta('Para evaluar el préstamo necesito un DNI de prueba de 8 dígitos. También podés elegir uno de la lista.', estado, ['Ver clientes de prueba', 'Cancelar'])
 
     intencion = detectar_intencion(mensaje)
     # Las consultas públicas pueden interrumpir un trámite sin exigir un DNI.
-    if intencion == 'apertura':
-        return respuesta('Para una apertura real se verificarían identidad, mayoría de edad y datos de contacto. Acá podés crear un perfil de prueba en dos pasos: DNI ficticio y nombre. ¿Querés comenzar?',
-                         base, ['Crear perfil de prueba', 'Ver productos', 'Continuar como visitante'])
     publicas = {
         'productos': 'En BUAInco podés conocer la caja de ahorro, tarjetas de débito y crédito, y préstamos personales. También podés cotizar sin ser cliente. ¿Qué te interesa?',
-        'info_cuenta': 'La caja de ahorro del prototipo permite consultar saldo, movimientos y datos para recibir transferencias. La tarjeta de débito usa el dinero disponible en esa cuenta. Podés explorar un perfil o crear uno de prueba.',
-        'info_tarjetas': 'La tarjeta de débito (TD) descuenta compras del saldo de la cuenta. La tarjeta de crédito (TC) reúne consumos en un resumen con cierre, vencimiento y límite. ¿Querés ver una tarjeta de tu perfil o abrir una cuenta?',
-        'requisitos_pp': 'Para un préstamo personal se suelen solicitar identificación e ingresos comprobables y realizar una evaluación crediticia. Podés cotizar sin ser cliente: desde $100.000 hasta $1.000.000 para visitantes, en 6, 12 o 24 cuotas. Si tenés un perfil, se muestra su límite. La cotización no implica aprobación.',
-        'asesor': 'Por ahora no hay asesores disponibles en este canal. Podés llamar al 0800-000-2824 de BUAInco (número ficticio de la demo).',
+        'asesor': 'Podés comunicarte con un asesor desde el número 0800-000-2824 de BUAInco - opción 2',
     }
     if intencion in publicas:
         return respuesta(publicas[intencion], estado if paso in ('monto', 'cuotas') else base,
-                         ['Cotizar un préstamo', 'Abrir una cuenta', 'Ver clientes de prueba'])
+                         ['Cotizar un préstamo', 'Ver clientes de prueba'])
 
     if estado.get('ultimo_prestamo') and re.search(r'mejor|cambiar|eran|equivoque|\by en\b', t):
         monto, cuotas = extraer_prestamo(mensaje)
@@ -625,7 +503,7 @@ def responder(mensaje, estado):
             return respuesta('¿Querés bloquear la tarjeta de débito (TD) o crédito (TC)?', estado, ['Débito (TD)', 'Crédito (TC)', 'Cancelar'])
     if intencion in PERSONALES and not p:
         return respuesta('Para consultar tus productos necesito identificar un perfil. Ingresá un DNI de prueba o elegí uno de la lista. La evaluación crediticia usa datos ficticios, sin consultar una central externa. El DNI se mantiene solo durante la sesión y no se guarda en una base de datos.',
-                         {'paso': 'identificar', 'pendiente': mensaje}, ['Ver clientes de prueba', 'Continuar como visitante', 'Abrir una cuenta'])
+                         {'paso': 'identificar', 'pendiente': mensaje}, ['Ver clientes de prueba', 'Continuar como visitante', 'Soy cliente'])
     if intencion == 'tarjeta_perdida':
         return respuesta('Te ayudo a bloquearla. ¿Es de débito (TD) o crédito (TC)?', {**base, 'paso': 'tipo_tarjeta'}, ['Débito (TD)', 'Crédito (TC)', 'Cancelar'])
     if p:
@@ -636,22 +514,19 @@ def responder(mensaje, estado):
         textos = {
             'score': evaluacion(estado),
             'saldo': f'Tu caja de ahorro tiene {dinero(p["saldo"])} disponibles.',
-            'tc': f'Tu tarjeta de crédito está {estado_tc}.\nResumen: {dinero(p["tc"])}\nCierre: {cierre:%d/%m/%Y}\nVencimiento: {vence:%d/%m/%Y}\nDisponible para compras: {dinero(p["limite_tc"] - p["tc"])}.',
+            'tc': f'Tu tarjeta de crédito está {estado_tc}.\nLímite total: {dinero(p["limite_tc"])}\nConsumos del resumen: {dinero(p["tc"])}\nCierre: {cierre:%d/%m/%Y}\nVencimiento: {vence:%d/%m/%Y}\nDisponible para compras: {dinero(p["limite_tc"] - p["tc"])}.',
             'td': f'Tu tarjeta de débito está {estado_td} y usa el saldo de tu caja de ahorro: {dinero(p["saldo"])}.',
-            'limite_tc': f'Límite de tu TC: {dinero(p["limite_tc"])}\nConsumos del resumen: {dinero(p["tc"])}\nDisponible: {dinero(p["limite_tc"] - p["tc"])}.',
             'alias': f'Alias de prueba: buainco.{estado["dni"]}\nCBU ficticio: 00000000{estado["dni"]}000000\nTitular del perfil: {p["nombre"]}.',
-            'movimientos': f'Últimos movimientos de tu caja de ahorro:\n{fecha} · Transferencia a Alex Ríos: −{dinero(p["transferencia"])}\n{fecha} · Compra en Mercado Norte: −$18.500\n{fecha} · Acreditación de haberes: +$650.000\nSaldo disponible actual: {dinero(p["saldo"])}.',
             'transferencia': f'Última transferencia\nDestinatario: Alex Ríos\nImporte: {dinero(p["transferencia"])}\nFecha: {fecha}\nEstado: completada\nComprobante: BUA-{estado["dni"][-4:]}-01.',
         }
         if intencion in textos:
             return respuesta(textos[intencion], base)
-    if paso == 'alta_dni':
-        return respuesta('El DNI de prueba debe tener exactamente 8 dígitos. También podés cancelar.', estado)
     if paso == 'identificar':
         return respuesta('Necesito un DNI de prueba de 8 dígitos para esta consulta personal. Si preferís, seguimos como visitante.', estado, ['Ver clientes de prueba', 'Continuar como visitante'])
     return respuesta('No llegué a entender. Podés preguntarme por cuentas, tarjetas, préstamos o asesores. Por ejemplo: “¿qué productos tienen?” o “quiero 300 mil en 12 cuotas”.', base, MENU)
 
 
+# 6. INTERFAZ WEB: FLASK RECIBE MENSAJES Y CONSERVA LA SESIÓN
 @app.get('/')
 def inicio():
     return render_template('index.html', modo='flask')
@@ -677,56 +552,5 @@ def reiniciar():
     return jsonify({'ok': True})
 
 
-def evaluar_clasificador():
-    """Validación cruzada: cada frase se predice sin haber sido entrenada en esa ronda."""
-    from sklearn.metrics import classification_report, confusion_matrix
-    from sklearn.model_selection import StratifiedKFold, cross_val_predict
-
-    frases = [frase for lista in EJEMPLOS.values() for frase in lista]
-    etiquetas = [intencion for intencion, lista in EJEMPLOS.items() for _ in lista]
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    predicciones = cross_val_predict(entrenar_modelo(), frases, etiquetas, cv=cv)
-    print('Validación cruzada de 5 partes sobre frases etiquetadas:')
-    print(classification_report(etiquetas, predicciones, zero_division=0))
-    print('Orden de filas y columnas:', list(EJEMPLOS))
-    print(confusion_matrix(etiquetas, predicciones, labels=list(EJEMPLOS)))
-
-
-def comparar_modelos():
-    """Compara tres clasificadores con las mismas frases, TF-IDF y particiones."""
-    from sklearn.metrics import accuracy_score, f1_score
-    from sklearn.model_selection import StratifiedKFold, cross_val_predict
-    from sklearn.naive_bayes import MultinomialNB
-    from sklearn.svm import LinearSVC
-
-    frases = [frase for lista in EJEMPLOS.values() for frase in lista]
-    etiquetas = [intencion for intencion, lista in EJEMPLOS.items() for _ in lista]
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    modelos = {
-        'Regresión logística': LogisticRegression(C=10, max_iter=1000),
-        'Naive Bayes': MultinomialNB(alpha=1),
-        'SVM lineal': LinearSVC(C=1),
-    }
-    print(f'Validación cruzada de 5 partes · {len(frases)} frases · {len(EJEMPLOS)} intenciones')
-    print('Mismo TF-IDF de caracteres (2 a 5) y mismas particiones para todos.\n')
-    print(f'{"Modelo":<22} {"Exactitud":>10} {"F1 macro":>10} {"Errores":>8}')
-    for nombre, estimador in modelos.items():
-        pipeline = make_pipeline(
-            TfidfVectorizer(strip_accents='unicode', analyzer='char_wb', ngram_range=(2, 5)),
-            estimador,
-        )
-        predicciones = cross_val_predict(pipeline, frases, etiquetas, cv=cv)
-        aciertos = sum(real == predicho for real, predicho in zip(etiquetas, predicciones))
-        print(f'{nombre:<22} {accuracy_score(etiquetas, predicciones):>10.3f} '
-              f'{f1_score(etiquetas, predicciones, average="macro"):>10.3f} '
-              f'{len(frases) - aciertos:>8}')
-    print('\nMide solo el clasificador sobre este conjunto pequeño; no evalúa las reglas ni el diálogo.')
-
-
 if __name__ == '__main__':
-    if len(sys.argv) == 2 and sys.argv[1] == '--evaluar':
-        evaluar_clasificador()
-    elif len(sys.argv) == 2 and sys.argv[1] == '--comparar':
-        comparar_modelos()
-    else:
-        app.run(debug=True)
+    app.run(debug=True)

@@ -40,6 +40,15 @@ El servidor expone `/` y `/api/chat`. No necesita una base de datos ni servicios
 
 ```bash
 python app.py --evaluar
+python app.py --comparar
 ```
 
-Ese comando imprime precision, recall, F1 y matriz de confusión sobre las frases de entrenamiento mediante validación cruzada de cinco partes. La app web ejecutada con Flask usa el clasificador Python; `dist/` es solamente una demo web estática.
+`--evaluar` imprime precisión, recall, F1 y matriz de confusión para la regresión logística. `--comparar` prueba también Naive Bayes y SVM lineal. Los tres usan el mismo TF-IDF de caracteres y las mismas cinco particiones estratificadas: cada frase evaluada queda fuera del entrenamiento de su ronda.
+
+| Modelo | Exactitud | F1 macro | Errores / 288 |
+| --- | ---: | ---: | ---: |
+| Regresión logística (C=10) | 0,733 | 0,731 | 77 |
+| SVM lineal (C=1) | 0,729 | 0,726 | 78 |
+| Naive Bayes (α=1) | 0,663 | 0,664 | 97 |
+
+Nos quedamos con regresión logística porque rindió mejor en esta prueba y entrega probabilidades con `predict_proba`, usadas para pedir reformulación cuando la mayor es menor que 0,45. Su ventaja sobre SVM es **solo una frase**; este conjunto pequeño no demuestra superioridad general. La evaluación mide el clasificador, no las reglas prioritarias ni el diálogo completo. La app web ejecutada con Flask usa el clasificador Python; `dist/` es solamente una demo web estática.

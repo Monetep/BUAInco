@@ -692,8 +692,41 @@ def evaluar_clasificador():
     print(confusion_matrix(etiquetas, predicciones, labels=list(EJEMPLOS)))
 
 
+def comparar_modelos():
+    """Compara tres clasificadores con las mismas frases, TF-IDF y particiones."""
+    from sklearn.metrics import accuracy_score, f1_score
+    from sklearn.model_selection import StratifiedKFold, cross_val_predict
+    from sklearn.naive_bayes import MultinomialNB
+    from sklearn.svm import LinearSVC
+
+    frases = [frase for lista in EJEMPLOS.values() for frase in lista]
+    etiquetas = [intencion for intencion, lista in EJEMPLOS.items() for _ in lista]
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    modelos = {
+        'Regresión logística': LogisticRegression(C=10, max_iter=1000),
+        'Naive Bayes': MultinomialNB(alpha=1),
+        'SVM lineal': LinearSVC(C=1),
+    }
+    print(f'Validación cruzada de 5 partes · {len(frases)} frases · {len(EJEMPLOS)} intenciones')
+    print('Mismo TF-IDF de caracteres (2 a 5) y mismas particiones para todos.\n')
+    print(f'{"Modelo":<22} {"Exactitud":>10} {"F1 macro":>10} {"Errores":>8}')
+    for nombre, estimador in modelos.items():
+        pipeline = make_pipeline(
+            TfidfVectorizer(strip_accents='unicode', analyzer='char_wb', ngram_range=(2, 5)),
+            estimador,
+        )
+        predicciones = cross_val_predict(pipeline, frases, etiquetas, cv=cv)
+        aciertos = sum(real == predicho for real, predicho in zip(etiquetas, predicciones))
+        print(f'{nombre:<22} {accuracy_score(etiquetas, predicciones):>10.3f} '
+              f'{f1_score(etiquetas, predicciones, average="macro"):>10.3f} '
+              f'{len(frases) - aciertos:>8}')
+    print('\nMide solo el clasificador sobre este conjunto pequeño; no evalúa las reglas ni el diálogo.')
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == '--evaluar':
         evaluar_clasificador()
+    elif len(sys.argv) == 2 and sys.argv[1] == '--comparar':
+        comparar_modelos()
     else:
         app.run(debug=True)
